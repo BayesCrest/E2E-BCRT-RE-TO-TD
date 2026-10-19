@@ -103,8 +103,11 @@ class MomentumStrategy:
 
     @staticmethod
     def _apply_max_weight(weights: Dict[str, float], max_weight: float) -> Dict[str, float]:
-        constrained = {ticker: min(weight, max_weight) for ticker, weight in weights.items()}
-        total = sum(constrained.values())
-        if total == 0:
-            return constrained
-        return {ticker: weight / total for ticker, weight in constrained.items()}
+        """Cap long-only target weights, leaving the unallocated balance in cash.
+
+        Inputs from _compute_weights sum to one. Do not renormalise after
+        clipping: doing so can violate the cap, including when there are too
+        few eligible securities to invest all capital. Deliberately avoid
+        redistribution so this operation never increases an input weight.
+        """
+        return {ticker: min(weight, max_weight) for ticker, weight in weights.items()}
